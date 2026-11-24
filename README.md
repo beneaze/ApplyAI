@@ -9,6 +9,13 @@ them, and you approve each one.
 It runs as a [Claude Code](https://claude.com/claude-code) plugin on your own computer, with
 your Claude subscription. No API key, no server, no account with us.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/dashboard-dark.png">
+  <img alt="ApplyAI dashboard: applications sent, postings screened, interviews, run history, weekly charts, pipeline, salary ranges, employer ratings and a table of every application with links to its CV and cover letter" src="docs/dashboard-light.png">
+</picture>
+
+<sub>The dashboard every workspace gets (made-up demo data, see <a href="docs/demo_dashboard.py">docs/demo_dashboard.py</a>).</sub>
+
 ```
 /applyai:setup   →   /applyai:run   →   /applyai:apply   →   /applyai:track
    your profile       new postings,        fills forms,        sent, interviews,
@@ -106,6 +113,7 @@ applyai schedule 07:30       # daily run (macOS launchd / Linux cron)
   **CV, cover letter, Job.md and folder**.
 
 Filters (period, city, status, search) apply to everything on the page.
+`python docs/demo_dashboard.py` builds one from made-up data, to try it without a workspace.
 
 Every application gets its own folder:
 

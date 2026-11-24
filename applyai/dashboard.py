@@ -291,6 +291,7 @@ function el(tag, attrs = {}, kids = []) {
 }
 const short = (t, n = 18) => t.length > n ? t.slice(0, n - 1) + "…" : t;
 const shortDate = s => day(s).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+const plural = (n, one, many) => `${fmtInt(n)} ${n === 1 ? one : many}`;
 const fmtInt = n => (n ?? 0).toLocaleString("en-US");
 const fmtK = n => n >= 1e6 ? (n / 1e6).toFixed(1) + "M" : n >= 1e3 ? Math.round(n / 1e3) + "K" : String(n);
 const median = a => { const s = a.filter(x => x != null).sort((x, y) => x - y); if (!s.length) return null; const m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
@@ -376,10 +377,10 @@ function tiles({ posts, appsAll }) {
       el("div", { class: "d", text: `${waiting} ready to send · ${needs} need you` })]),
     t("Postings screened", fmtInt(posts.length), `${fmtInt(good.length)} good fits (${pct(good.length, posts.length)})`),
     t("Tailored", fmtInt(appsAll.filter(a => a.status !== "failed").length), "CV + letter, one page"),
-    t("Interviews", fmtInt(sent.filter(a => a.status === "interview" || a.status === "offer").length), `${sent.filter(a => a.status === "offer").length} offers`),
-    t("Response rate", pct(replied.length, sent.length), `${replied.length} replies to ${sent.length}`),
+    t("Interviews", fmtInt(sent.filter(a => a.status === "interview" || a.status === "offer").length), plural(sent.filter(a => a.status === "offer").length, "offer", "offers")),
+    t("Response rate", pct(replied.length, sent.length), `${plural(replied.length, "reply", "replies")} to ${sent.length}`),
     t("Median fit · ATS", `${median(appsAll.map(a => a.fit))?.toFixed(0) ?? "–"} · ${median(appsAll.map(a => a.ats))?.toFixed(0) ?? "–"}`, "fit /10 · ATS /100"),
-    t("Median rating", ratings.length ? median(ratings).toFixed(1) : "–", `${ratings.length} employers rated`),
+    t("Median rating", ratings.length ? median(ratings).toFixed(1) : "–", `${plural(ratings.length, "employer", "employers")} rated`),
   );
 }
 
@@ -622,7 +623,7 @@ function runStrip() {
   }));
   const last = runs[runs.length - 1], lastOk = [...runs].reverse().find(r => r.ok);
   const fails = days.filter(d => (byDay[d] || []).length && !(byDay[d] || []).some(r => r.ok)).length;
-  const msg = last.ok ? `Last run ${last.at.replace("T", " ")}: ✓ ${last.new} new applications`
+  const msg = last.ok ? `Last run ${last.at.replace("T", " ")}: ✓ ${plural(last.new, "new application", "new applications")}`
     : `✕ Last run ${last.at.replace("T", " ")} failed: ${last.error}${lastOk ? ` · last good run ${lastOk.at.slice(0, 10)}` : ""}`;
   box.replaceChildren(el("h2", { text: "Runs" }), strip,
     el("span", { class: "legend", style: "margin:0" }, [el("span", {}, [el("i", { style: "background:var(--good)" }), "✓ ran"]), el("span", {}, [el("i", { style: "background:var(--critical)" }), "✕ failed"]), el("span", {}, [el("i", { style: "background:var(--grid)" }), "no run"])]),
