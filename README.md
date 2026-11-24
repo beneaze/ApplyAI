@@ -84,13 +84,34 @@ applyai run                  # full run
 applyai scan                 # just show what's new
 applyai tailor URL           # one posting
 applyai queue                # what waits to be sent
+applyai dashboard --open     # statistics + links to every application
 applyai schedule 07:30       # daily run (macOS launchd / Linux cron)
 ```
+
+### Dashboard
+
+`_Dashboard.html` in your workspace rebuilds after every run and status change
+(`applyai dashboard --open` to open it). It is one offline file with no external requests:
+
+- **Headline numbers**: applications sent, postings screened, good fits, interviews and offers,
+  response rate, median fit, ATS score and employer rating.
+- **Runs**: one square per day for the last 4 weeks. A failed daily run shows why (login
+  expired, no internet, usage limit), so a broken schedule doesn't go unnoticed.
+- **Charts**: postings screened per week (good fit vs. screened out), applications sent per
+  week, the pipeline from posting to offer, salary ranges stated in postings next to the
+  salary you asked for, and kununu / Glassdoor ratings.
+- **By city**: screened, good fits, tailored, sent, interviews, median posted salary.
+- **Every application** in a sortable, searchable table: status, date sent, where, company,
+  position (linked to the posting), fit, ATS, rating, posted salary, your ask, and links to the
+  **CV, cover letter, Job.md and folder**.
+
+Filters (period, city, status, search) apply to everything on the page.
 
 Every application gets its own folder:
 
 ```
 ~/Job Applications/
+├── _Dashboard.html            statistics and every application with links to its documents
 ├── _Overview.md               all applications, newest first: fit, ATS, rating, network
 ├── _Tracker.csv               status of each one (to apply / applied / interview / ...)
 ├── config.yaml                what to search, where, which sources
@@ -152,6 +173,8 @@ applyai/
   ats.py          local ATS score from the PDF text layer (pdfminer + poppler)
   context.py      digest of earlier Claude conversations for the setup
   tracker.py      queue, applied log, _Tracker.csv
+  dashboard.py    _Dashboard.html (self-contained, offline)
+  salary.py       salary ranges stated in postings
 skills/           setup, run, apply, track (the Claude Code side)
 bin/applyai       launcher; builds its own venv on first use
 ```

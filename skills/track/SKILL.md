@@ -9,6 +9,11 @@ allowed-tools: Bash(applyai *), Read
 
 The CLI is `applyai` (if the shell can't find it: `${CLAUDE_PLUGIN_ROOT}/bin/applyai`).
 
+- **Dashboard**: `applyai dashboard --open` rebuilds and opens `<workspace>/_Dashboard.html`:
+  sent / screened / interviews / response rate, postings and applications per week, the
+  pipeline, posted salary ranges next to the user's ask, employer ratings, a strip of the last
+  28 daily runs (failed runs show the reason), and a sortable table of every application with
+  links to its CV, letter, Job.md and folder. It rebuilds itself after every run and `mark`.
 - **Status**: run `applyai status`, then read `<workspace>/_Tracker.csv`. Report in a few lines:
   sent (by status), waiting to be sent, interviews and offers in progress, and how long ago
   the last run happened. If more than 2 days passed and no daily run is scheduled, mention

@@ -6,7 +6,7 @@ import datetime as dt
 import json
 from pathlib import Path
 
-STATUSES = ["applied", "skipped", "interview", "offer", "rejected", "withdrawn", "blocked"]
+STATUSES = ["applied", "skipped", "interview", "offer", "rejected", "withdrawn", "blocked", "closed"]
 COLUMNS = ["Company", "Position", "Location", "Fit", "ATS", "Status", "Applied on", "Applied via",
            "Salary asked", "Posting URL", "Folder", "Notes"]
 

@@ -8,6 +8,7 @@ Daily use
     applyai status                 what is new, what waits to be sent
     applyai queue [--json]         tailored applications not sent yet
     applyai mark FOLDER STATUS     log applied / skipped / interview / offer / rejected
+    applyai dashboard [--open]     rebuild _Dashboard.html (stats, salaries, ratings, links to documents)
 Setup
     applyai init [PATH]            create a workspace (default ~/Job Applications)
     applyai doctor                 check tools, Claude login and profile
@@ -38,7 +39,7 @@ from pathlib import Path
 
 import yaml
 
-from . import ats, latex, match, output, ratings, schedule
+from . import ats, dashboard, latex, match, output, ratings, schedule
 from .llm import LLMError, ask
 from .log import log, setup
 from .models import Job
@@ -235,16 +236,52 @@ def tailor_jobs(ws: Workspace, cfg, store: Store, jobs: list[Job]):
         done += 1
     output.write_overview(ws.root, store.data)
     Tracker(ws).write_csv(store.data)
+    refresh_dashboard(ws, cfg, store)
     return done
 
 
-def claude_ok() -> bool:
-    """Cheap auth check before a run, so an expired login fails in seconds, not after 100 calls."""
+def refresh_dashboard(ws: Workspace, cfg, store: Store) -> Path:
+    return dashboard.write(ws, store.data, Tracker(ws).data, cfg)
+
+
+def _open(path: Path):
+    opener = "open" if platform.system() == "Darwin" else "xdg-open"
+    if shutil.which(opener):
+        subprocess.run([opener, str(path)], capture_output=True)
+
+
+def claude_check() -> tuple[bool, str]:
+    """Cheap check before a run, so a dead login fails in seconds, not after 100 calls.
+    Returns (ok, reason) with a reason a person can act on."""
     try:
-        return "OK" in ask("Reply with exactly: OK", model="haiku", timeout=120)
+        return ("OK" in ask("Reply with exactly: OK", model="haiku", timeout=120)), ""
     except LLMError as e:
-        log.debug("auth check failed: %s", e)
-        return False
+        msg = str(e)
+        log.debug("auth check failed: %s", msg)
+        if re.search(r"ENOTFOUND|ECONNREFUSED|ETIMEDOUT|reach the API|network|timed out", msg, re.I):
+            return False, "no internet connection (or the Claude API is unreachable)"
+        if re.search(r"revoked|expired|authenticate|log ?in|401|invalid.*token", msg, re.I):
+            return False, ("Claude login expired or revoked: run `claude setup-token` in a terminal, "
+                           "then `applyai save-token`")
+        if re.search(r"rate|limit|429|quota|usage", msg, re.I):
+            return False, "Claude usage limit reached: try again later"
+        return False, "Claude CLI failed: " + msg[:200]
+
+
+def claude_ok() -> bool:
+    return claude_check()[0]
+
+
+def record_run(ws: Workspace, command: str, ok: bool, new: int = 0, error: str = ""):
+    """Append to .applyai/state/runs.json (the dashboard shows the recent history)."""
+    f = ws.state / "runs.json"
+    try:
+        runs = json.loads(f.read_text()) if f.exists() else []
+    except ValueError:
+        runs = []
+    runs.append({"at": dt.datetime.now().isoformat(timespec="minutes"), "command": command, "ok": ok,
+                 "new": new, "error": error[:300], "scheduled": bool(os.environ.get("APPLYAI_NOTIFY"))})
+    f.write_text(json.dumps(runs[-400:], indent=0))
 
 
 def rerender(ws: Workspace, cfg, store: Store, only: Path | None = None):
@@ -283,6 +320,7 @@ def rerender(ws: Workspace, cfg, store: Store, only: Path | None = None):
                 store.put(k, ats=round(rep.score))
         log.info("re-rendered %s/%s (ATS %.0f, %d page)", j.company, j.title, rep.score, latex.pages(pdf))
     output.write_overview(ws.root, store.data)
+    refresh_dashboard(ws, cfg, store)
 
 
 def refresh_ratings(ws: Workspace, cfg, store: Store, force: bool = False):
@@ -305,6 +343,7 @@ def refresh_ratings(ws: Workspace, cfg, store: Store, force: bool = False):
             text = re.sub(r"(\n- \*\*Fit score:\*\*[^\n]*)", lambda m: m.group(1) + "\n" + add, text, count=1)
             md.write_text(text)
     output.write_overview(ws.root, store.data)
+    refresh_dashboard(ws, cfg, store)
 
 
 def job_from_url(url: str) -> Job:
@@ -371,9 +410,8 @@ def cmd_doctor(ws: Workspace) -> int:
         if missing:
             ok = False
             print(f"  ✗ LaTeX packages missing: {', '.join(missing)} (install the full TeX distribution)")
-    auth = bool(shutil.which("claude")) and claude_ok()
-    print(f"  {'✓' if auth else '✗'} Claude login "
-          + ("OK" if auth else "FAILED: run `claude` once, or `claude setup-token` + `applyai save-token` for unattended runs"))
+    auth, why = claude_check() if shutil.which("claude") else (False, "claude CLI not installed")
+    print(f"  {'✓' if auth else '✗'} Claude login {'OK' if auth else 'FAILED: ' + why}")
     ok &= auth
     print(f"\nWorkspace: {ws.root} {'(found)' if ws.exists() else '(not created yet: applyai init)'}")
     if ws.exists():
@@ -472,7 +510,7 @@ def _stay_awake():
 
 COMMANDS = ["run", "scan", "pending", "tailor", "ats", "rerender", "check", "doctor", "ratings", "init",
             "import-cv", "context", "compile-base", "find-board", "status", "queue", "mark", "schedule",
-            "save-token", "where"]
+            "save-token", "where", "dashboard"]
 
 
 def main(argv=None):
@@ -496,6 +534,7 @@ def main(argv=None):
     ap.add_argument("--no-code", action="store_true", help="context: skip Claude Code transcripts")
     ap.add_argument("--max-chars", type=int, default=60000, help="context: size of the digest")
     ap.add_argument("--remove", action="store_true", help="schedule: remove the daily run")
+    ap.add_argument("--open", action="store_true", help="dashboard: open it in the browser")
     ap.add_argument("-v", "--verbose", action="store_true")
     a = ap.parse_args(argv)
     ws = Workspace()
@@ -565,7 +604,14 @@ def main(argv=None):
         if not a.target or a.extra not in STATUSES:
             sys.exit(f"usage: applyai mark FOLDER {{{'|'.join(STATUSES)}}} [--via ...] [--note ...] [--salary ...]")
         rec = Tracker(ws).mark(store.data, a.target, a.extra, a.via, a.note, a.salary)
+        refresh_dashboard(ws, cfg, store)
         print(f"{rec['company']} — {rec['title']}: {rec['status']}")
+        return
+    if a.command == "dashboard":
+        out = refresh_dashboard(ws, cfg, store)
+        print(out)
+        if a.open:
+            _open(out)
         return
     if a.command == "compile-base":
         sys.exit(cmd_compile_base(ws, cfg))
@@ -579,9 +625,14 @@ def main(argv=None):
         cfg["max_tailor_per_run"] = a.limit
     only = set(a.only.split(",")) if a.only else None
     if a.command in NEEDS_CLAUDE:
-        if not claude_ok():
-            log.error("Claude CLI is not logged in. Run `claude` once, or for unattended runs `claude setup-token` "
-                      "and then `applyai save-token` - stopping.")
+        ok, why = claude_check()
+        if not ok:
+            log.error("Stopping: %s", why)
+            if a.command in ("run", "pending"):
+                record_run(ws, a.command, False, error=why)
+                refresh_dashboard(ws, cfg, store)
+            if os.environ.get("APPLYAI_NOTIFY"):
+                schedule.notify("ApplyAI run failed", why[:120])
             sys.exit(2)
         _stay_awake()
 
@@ -593,6 +644,8 @@ def main(argv=None):
         n = tailor_jobs(ws, cfg, store, sl) if a.command == "run" and sl else 0
         if a.command == "run":
             log.info("done: %d new application folders under %s", n, ws.root)
+            record_run(ws, "run", True, n)
+            refresh_dashboard(ws, cfg, store)
             if os.environ.get("APPLYAI_NOTIFY"):
                 schedule.notify("ApplyAI", f"{n} new applications ready" if n else "Run finished, nothing new")
         return
@@ -602,6 +655,7 @@ def main(argv=None):
         log.info("%d shortlisted postings waiting", len(sl))
         n = tailor_jobs(ws, cfg, store, sl)
         log.info("done: %d new application folders under %s", n, ws.root)
+        record_run(ws, "pending", True, n)
         return
 
     if a.command == "tailor":

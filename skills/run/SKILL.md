@@ -31,8 +31,8 @@ When it finishes:
    position, city, fit, ATS score, rating. Add one line on why each fits (from its `Job.md`).
 3. Mention anything that needs the user: postings that failed, sources that refused requests,
    ratings below 3.5, or a login error (then point to `applyai doctor`).
-4. Offer the next step: look at a specific CV (open the PDF), or send them with
-   `/applyai:apply`.
+4. Offer the next step: look at a specific CV (open the PDF), the dashboard
+   (`applyai dashboard --open`), or send them with `/applyai:apply`.
 
 Never edit the generated CVs or letters by hand to "improve" them. If the user wants something
 different, change `profile/facts.md`, `profile/cv_rules.md` or `config.yaml`, then re-run
