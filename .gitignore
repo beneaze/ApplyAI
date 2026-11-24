@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.venv/
+.DS_Store
+# LaTeX build output
+*.aux
+*.log
+*.out
+# never commit a real workspace or personal data
+Job Applications/
+context_digest.md
+applyai/examples/profile/cv_base.pdf

@@ -1,0 +1,10 @@
+{
+  "name": "applyai",
+  "version": "0.1.0",
+  "description": "Daily job search with Claude: scans job boards, screens postings against your profile, and writes a tailored one-page CV and cover letter for every good fit. Only true facts, you approve every submission.",
+  "author": { "name": "beneaze", "url": "https://github.com/beneaze" },
+  "homepage": "https://github.com/beneaze/ApplyAI",
+  "repository": "https://github.com/beneaze/ApplyAI",
+  "license": "MIT",
+  "keywords": ["jobs", "job-search", "cv", "resume", "cover-letter", "ats", "latex", "career"]
+}

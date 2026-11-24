@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# ApplyAI launcher. Creates its own Python environment on first use, then runs the CLI.
+# Installed as a Claude Code plugin, this file is on the Bash tool's PATH; from a terminal,
+# run it directly or link it:  ln -s "$PWD/bin/applyai" ~/.local/bin/applyai
+set -euo pipefail
+
+SRC="${BASH_SOURCE[0]}"
+while [ -L "$SRC" ]; do  # follow symlinks to the repo
+  DIR="$(cd -P "$(dirname "$SRC")" && pwd)"; SRC="$(readlink "$SRC")"; [[ $SRC != /* ]] && SRC="$DIR/$SRC"
+done
+REPO="$(cd -P "$(dirname "$SRC")/.." && pwd)"
+
+# TeX and Homebrew are often missing from PATH in non-login shells (launchd, cron, IDEs)
+for d in /Library/TeX/texbin /opt/homebrew/bin /usr/local/bin /usr/local/texlive/*/bin/*; do
+  [ -d "$d" ] && case ":$PATH:" in *":$d:"*) ;; *) PATH="$PATH:$d" ;; esac
+done
+export PATH
+
+VENV="${APPLYAI_VENV:-${XDG_DATA_HOME:-$HOME/.local/share}/applyai/venv}"
+STAMP="$VENV/.requirements"
+if [ ! -x "$VENV/bin/python" ] || ! cmp -s "$REPO/requirements.txt" "$STAMP"; then
+  echo "ApplyAI: setting up its Python environment in $VENV (one time) ..." >&2
+  mkdir -p "$(dirname "$VENV")"
+  if command -v uv >/dev/null 2>&1; then
+    uv venv -q --allow-existing "$VENV" >&2
+    uv pip install -q --python "$VENV/bin/python" -r "$REPO/requirements.txt" >&2
+  else
+    PY="$(command -v python3 || true)"
+    [ -z "$PY" ] && { echo "ApplyAI needs Python 3.10+ (python3 not found)." >&2; exit 1; }
+    "$PY" -c 'import sys; sys.exit(sys.version_info < (3, 10))' || { echo "ApplyAI needs Python 3.10+." >&2; exit 1; }
+    "$PY" -m venv "$VENV" >&2
+    "$VENV/bin/pip" install -q --disable-pip-version-check -r "$REPO/requirements.txt" >&2
+  fi
+  cp "$REPO/requirements.txt" "$STAMP"
+fi
+
+export PYTHONPATH="$REPO${PYTHONPATH:+:$PYTHONPATH}"
+exec "$VENV/bin/python" -m applyai.cli "$@"

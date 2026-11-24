@@ -1,0 +1,17 @@
+{
+  "name": "applyai",
+  "owner": {
+    "name": "beneaze",
+    "url": "https://github.com/beneaze"
+  },
+  "metadata": {
+    "description": "ApplyAI: daily job search and tailored applications with Claude Code"
+  },
+  "plugins": [
+    {
+      "name": "applyai",
+      "source": "./",
+      "description": "Daily job search with Claude: tailored one-page CVs and cover letters for every good fit, from your own facts only."
+    }
+  ]
+}

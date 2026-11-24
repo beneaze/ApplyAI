@@ -1,0 +1,133 @@
+# ApplyAI configuration. /applyai:setup writes this for you; edit freely afterwards.
+# Everything is read at the start of each run.
+
+me:
+  name: Alex Morgan
+  file_name: Alex Morgan            # used in PDF names: CV_Alex_Morgan_<Company>.pdf
+  email: alex.morgan@example.com
+  phone_cv: "+49 151 0000000"
+  phone_letter: "+49 151 0000000"
+  street: Beispielstraße 1          # letter header; leave out what you don't want shown
+  zip_city: 10115 Berlin
+  city: Berlin                      # where you live: letter date line, relocation sentence
+  city_de: Berlin                   # same in German, for German letters (e.g. München)
+  # born: May 3, 1999 in Hamburg, Germany   # shown only on CVs for the countries below
+  # born_countries: [Germany, Switzerland]
+
+candidate:
+  # One paragraph Claude uses to screen postings (and the browser agent to search).
+  summary: >
+    M.Sc. Mechanical Engineering (TU Berlin), 2 years as a robotics test engineer: test benches,
+    sensor calibration, Python test automation, ROS 2. Wants robotics / mechatronics / test &
+    validation engineering roles at early-career level.
+  # Your own deal-breakers and preferences, in plain words. The screening applies them.
+  screening_rules: >
+    Early career: about 2 years of experience, so roles asking for 6+ years are a poor fit.
+    No management, sales or pure software roles. Speaks German and English only. EU citizen;
+    US roles need visa sponsorship. No internships or working-student roles.
+  availability: from March 2027
+  willing_to_relocate: true
+  letter_notes: ""                  # anything every letter should know, e.g. "currently at X since Sep 2026"
+
+# Where to look. Built-in town lists exist for Munich, Zurich, San Francisco Bay Area, Berlin,
+# London, New York, Boston, Seattle, Paris and Amsterdam; for other cities list the suburbs.
+locations:
+  - name: Berlin
+    country: Germany
+    aliases: [potsdam, adlershof]
+  - name: Munich
+    country: Germany
+remote: false                       # true = also keep postings marked remote
+
+days_back: 14                       # only postings from the last N days
+
+sources:
+  company_boards: true              # Greenhouse / Lever / Ashby / Personio / Recruitee / Workable APIs
+  networks: false                   # founder-network startups (YC, CDTM, Manage&More), see below
+  jobs_ch: false                    # jobs.ch public API (Swiss locations only)
+  browser_agent: false              # Claude reads sites without an API in a headless browser
+  # The next two read job portals whose terms forbid automated access. Turning them on is your
+  # decision and your responsibility; ApplyAI keeps the request rate low but can't make it allowed.
+  linkedin: false                   # LinkedIn public guest search
+  stepstone: false                  # StepStone.de (German locations only)
+
+queries:                            # search terms (LinkedIn, jobs.ch, StepStone, browser agent)
+  - robotics engineer
+  - test engineer robotics
+  - mechatronics engineer
+  - validation engineer
+queries_local:                      # extra terms in the local language (StepStone)
+  - robotik ingenieur
+  - mechatronik
+
+# Stage 1: cheap title filter (regex, case-insensitive)
+title_include:
+  - robot|mechatron|test|validation|verification|calibrat|hardware|systems? engineer|integration
+title_exclude:
+  - \bsenior\b|\bsr\.?\b|\bstaff\b|principal|\blead\b|\bhead\b|director|manager
+  - intern\b|internship|praktik|werkstudent|working student|thesis
+  - sales|vertrieb|recruit|marketing
+
+# Pre-ranking before Claude screens (regex: weight). Without it, the queries are used.
+relevance_terms:
+  "robot|robotik": 5
+  "mechatron": 4
+  "test bench|prüfstand|validation|verification": 3
+  "\\bros ?2?\\b": 3
+  "sensor|calibrat": 3
+  "python": 2
+
+# Stage 2: Claude rates the fit 0-10
+min_fit_score: 6                    # 7 = strong fit, 6 = solid, 5 = stretch
+max_tailor_per_run: 10              # cap on new application folders per run
+max_score_per_run: 120              # cap on postings screened per run
+ratings: true                       # kununu / Glassdoor rating per employer (via web search)
+
+tailoring:
+  scoring_model: sonnet
+  writer_model: opus                # writes CV + letter
+  editor_model: sonnet              # one-page fitting
+  factcheck_model: sonnet
+  fact_check: true                  # second model checks every claim against profile/facts.md
+  ats_target: 80                    # below this, one extra pass works in missing TRUE keywords
+  cv_headline: false                # true = a target-title line under your name (helps ATS title match)
+  cv_language: English              # the CV is always written in this language
+  letter_language: auto             # auto = posting language if listed below, else English
+  letter_languages: [en, de]
+  # Entries that must stay on every CV, even when Claude would cut them (text that identifies
+  # the entry in cv_base.tex). For one not in the base CV: {match, latex, section, position: first}
+  must_keep: []
+  # Items always listed in a Skills row: {row name: item}
+  ensure_skills: {}
+  # Photo (profile/photo.jpg): only for these countries and only for traditional employers
+  # (companies below, or postings written in German). Never for US jobs.
+  photo: ""                         # e.g. profile/photo.jpg
+  photo_countries: [Germany, Switzerland, Austria]
+  photo_for_german_postings: true
+  photo_companies: []
+
+# Company career boards with public APIs. Find one with: applyai find-board "Company"
+company_boards:
+  - {name: Magazino, ats: personio, token: magazino}
+  - {name: RobCo, ats: ashby, token: robco}
+  - {name: Wandelbots, ats: personio, token: wandelbots}
+
+# Founder networks (sources.networks): YC companies in your locations whose tags match yc_tags,
+# CDTM and Manage&More alumni startups (Munich).
+networks:
+  yc: true
+  yc_tags: "hard tech|hardware|robot|industrial|manufactur|autonomous|drone"
+  cdtm: false
+  manage_and_more: false
+
+# Browser agent (sources.browser_agent): Claude opens these sites in a headless Chrome (no window
+# pops up), searches and copies postings. It never signs in, uploads or submits anything.
+browser_model: sonnet
+browser: chrome
+browser_headless: true              # false = watch it work in a visible window
+browser_targets: []
+#  - name: Example careers site
+#    url: https://www.example.com/careers
+#    company: Example
+#    metros: [Munich]
+#    instructions: Open the job list and read engineering openings in Munich.

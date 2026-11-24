@@ -1,0 +1,104 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Medium Length Professional CV
+% BASE VERSION used by ApplyAI (tailored per job)
+% Example persona: Alex Morgan is made up. /applyai:setup replaces this file with your CV.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass{resume} % resume.cls (ApplyAI template, or profile/resume.cls for your own design)
+
+\usepackage[left=0.5in,top=0.35in,right=0.5in,bottom=0.35in]{geometry}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true, linkcolor=black, urlcolor=black}
+
+\def\addressskip{\vspace{1.1em}}
+
+%----------------------------------------------------------------------------------------
+%	NAME AND CONTACT
+%----------------------------------------------------------------------------------------
+\name{Alex Morgan}
+\address{+49 151 0000000 \\ alex.morgan@example.com \\ linkedin.com/in/alex-morgan-example}
+
+\begin{document}
+
+%----------------------------------------------------------------------------------------
+%	WORK EXPERIENCE
+%----------------------------------------------------------------------------------------
+\begin{rSection}{Work Experience}
+
+\begin{rSubsection}{Example Robotics GmbH}{Mar 2025 -- Present}{Robotics Test Engineer}{Berlin, Germany}
+\item Built three end-of-line test benches for 6-axis collaborative robot arms, cutting test time per unit from 45 to 18 minutes
+\item Automated joint-torque and encoder calibration in Python, raising first-pass yield from 91\% to 97\%
+\item Wrote the ROS 2 test framework (pytest, launch testing) that 4 teams run on every firmware release of the arm controller
+\item Added a camera-based tool-center-point accuracy check to final test, catching 0.3\,mm deviations before shipping
+\end{rSubsection}
+
+\begin{rSubsection}{Sample Automotive AG}{Apr 2023 -- Feb 2025}{Working Student, Sensor Validation}{Munich, Germany}
+\item Validated radar and camera sensor modules on HIL rigs; wrote 120+ automated test cases in Python and CANoe
+\item Built a thermal-cycling fixture from $-$40 to +85 degrees Celsius and analysed the drift data of 300 sensor units
+\item Reported 40+ hardware defects with root-cause analysis to the supplier quality team
+\end{rSubsection}
+
+\begin{rSubsection}{Demo Drives Ltd.}{Jul 2022 -- Sep 2022}{Summer Intern, Mechatronics}{Cambridge, United Kingdom}
+\item Designed a motor-controller test PCB in KiCad and characterised BLDC drive efficiency across load
+\end{rSubsection}
+
+\end{rSection}
+
+%----------------------------------------------------------------------------------------
+%	EDUCATION
+%----------------------------------------------------------------------------------------
+\begin{rSection}{Education}
+
+\begin{rSubsection}{Technische Universität Berlin}{Oct 2022 -- Feb 2025}{M.Sc. Mechanical Engineering (1.4)}{Berlin, Germany}
+\item Thesis: Learning-based friction compensation for collaborative robot joints (grade 1.0)
+\item Focus: control engineering, mechatronic systems, robotics, measurement technology
+\end{rSubsection}
+
+\begin{rSubsection}{Technical University of Munich}{Oct 2018 -- Sep 2022}{B.Sc. Mechanical Engineering (1.8)}{Munich, Germany}
+\item Thesis: Design of a compliant gripper for food handling
+\end{rSubsection}
+
+\begin{rSubsection}{Politecnico di Milano}{Feb 2021 -- Jul 2021}{Exchange Semester}{Milan, Italy}
+\item Courses: robot mechanics, industrial automation, mechatronic system design
+\end{rSubsection}
+
+\end{rSection}
+
+%----------------------------------------------------------------------------------------
+%	PROJECTS AND ENGAGEMENT
+%----------------------------------------------------------------------------------------
+\begin{rSection}{Projects and Engagement}
+
+\begin{rSubsection}{Formula Student Team}{Oct 2019 -- Jul 2022}{Electronics Lead}{Munich, Germany}
+\item Led 8 students building the low-voltage system and data logger of an electric race car; 3rd place overall at FS Germany 2021
+\end{rSubsection}
+
+\begin{rSubsection}{Open-source}{Jan 2024 -- Present}{Maintainer}{Remote}
+\item Maintain a ROS 2 package for force-torque sensor calibration (400+ GitHub stars, used in 30+ labs)
+\end{rSubsection}
+
+\begin{rSubsection}{Deutschlandstipendium}{Oct 2023 -- Feb 2025}{Scholarship Holder}{Berlin, Germany}
+\item Merit scholarship for academic performance and Formula Student engagement
+\end{rSubsection}
+
+\end{rSection}
+
+%----------------------------------------------------------------------------------------
+%	SKILLS
+%----------------------------------------------------------------------------------------
+\begin{rSection}{Skills}
+
+\vspace{0.2em}
+
+\begin{tabular}{ @{} >{\bfseries}l @{\hspace{4ex}} l }
+Robotics & ROS 2, MoveIt, kinematics, joint calibration, force-torque sensing \\
+Test & Test benches, HIL (dSPACE), end-of-line testing, pytest, CANoe, thermal cycling \\
+Lab & Oscilloscopes, torque sensors, data acquisition, root-cause analysis \\
+Engineering & SolidWorks, KiCad, MATLAB/Simulink, control design, GD\&T \\
+Software & Python, C++, Git, Linux, Docker \\
+Languages & German (Native), English (Fluent) \\
+\end{tabular}
+
+\end{rSection}
+
+\end{document}
